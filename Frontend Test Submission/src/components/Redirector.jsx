@@ -2,21 +2,28 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import logger from './LoggerMiddleware';
 
-const redirectionMap = {
-  ggl123: 'https://www.google.com',
-  aiopen: 'https://openai.com',
-  yt123: 'https://youtube.com'
-};
-
 export default function Redirector() {
   const { shortcode } = useParams();
 
   useEffect(() => {
     logger('Redirection accessed', { shortcode });
 
-    const targetUrl = redirectionMap[shortcode] || 'https://example.com';
-    alert(`Redirecting to: ${targetUrl}`);
-    window.location.href = targetUrl;
+    const map = JSON.parse(localStorage.getItem('urlMap') || '{}');
+    const entry = map[shortcode];
+
+    if (entry) {
+      const now = new Date();
+      const expiry = new Date(entry.expiry);
+
+      if (now <= expiry) {
+        alert(`Redirecting to: ${entry.longUrl}`);
+        window.location.href = entry.longUrl;
+      } else {
+        alert(`Link expired!`);
+      }
+    } else {
+      alert('Invalid or unknown shortcode!');
+    }
   }, [shortcode]);
 
   return <p>Redirecting...</p>;
